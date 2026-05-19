@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Hasil Rekomendasi - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+
+  <div class="stepper">
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-panel">
+    <div class="eyebrow">Rekomendasi Portofolio Siap</div>
+    <h1>Ringkasan Final Portofolio</h1>
+    <p>
+      Rekomendasi ini dibuat dari saham yang lolos Rule-Based System,
+      lalu dioptimalkan menggunakan Dynamic Markowitz pada rolling window
+      <strong>{{ window_bulan }} bulan terakhir</strong>.
+    </p>
+  </section>
+
+  <section class="info-grid three">
+    <div class="info-card">
+      <div class="info-icon">📚</div>
+      <div class="info-label">Data Historis</div>
+      <div class="info-value">{{ tahun_data }} Tahun</div>
+      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🧮</div>
+      <div class="info-label">Window Optimasi</div>
+      <div class="info-value">{{ window_bulan }} Bulan</div>
+      <div class="info-sub">{{ window_mulai }} → {{ window_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🛡️</div>
+      <div class="info-label">Profil Risiko</div>
+      <div class="info-value">{{ profil_risiko }}</div>
+      <div class="info-sub">Kategori portofolio: {{ kategori_risiko }}</div>
+    </div>
+  </section>
+
+  <section class="notice-card">
+    <div class="notice-icon">ℹ️</div>
+    <div>
+      <strong>Kenapa ada 5 tahun dan 12 bulan?</strong>
+      <p>
+        Data historis yang diambil adalah <strong>5 tahun</strong>.
+        Namun, Markowitz memakai <strong>rolling window 12 bulan terakhir</strong>
+        agar rekomendasi lebih mengikuti kondisi pasar terbaru.
+        Pada backtesting, window ini digeser setiap <strong>{{ step_bulan }} bulan</strong>.
+      </p>
+    </div>
+  </section>
+
+  <section class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">Total Dana</div>
+      <div class="metric-value">{{ dana_fmt }}</div>
+      <div class="metric-sub">modal investor</div>
+    </div>
+
+    <div class="metric-card green">
+      <div class="metric-label">Expected Return</div>
+      <div class="metric-value green">{{ expected_return }}%</div>
+      <div class="metric-sub">estimasi return tahunan</div>
+    </div>
+
+    <div class="metric-card blue">
+      <div class="metric-label">Expected Risk</div>
+      <div class="metric-value blue">{{ expected_risk }}%</div>
+      <div class="metric-sub">volatilitas tahunan</div>
+    </div>
+
+    <div class="metric-card gold">
+      <div class="metric-label">Sharpe Ratio</div>
+      <div class="metric-value gold">{{ sharpe_ratio }}</div>
+      <div class="metric-sub">return per unit risiko</div>
+    </div>
+  </section>
+
+  {% if backtest %}
+  <section class="summary-card">
+    <div class="section-title">Ringkasan Backtesting Historis</div>
+    <p class="section-sub">
+      Backtesting digunakan untuk menguji bagaimana strategi ini berjalan pada data historis.
+    </p>
+
+    <div class="info-grid four compact">
+      <div class="mini-stat">
+        <div class="mini-label">Periode Backtest</div>
+        <div class="mini-value">{{ backtest.backtest_mulai }} → {{ backtest.backtest_selesai }}</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-label">Total Return</div>
+        <div class="mini-value {% if backtest.total_return_pct >= 0 %}green{% else %}red{% endif %}">
+          {% if backtest.total_return_pct >= 0 %}+{% endif %}{{ backtest.total_return_pct }}%
+        </div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-label">CAGR</div>
+        <div class="mini-value blue">{{ backtest.return_tahunan_pct }}%</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-label">Max Drawdown</div>
+        <div class="mini-value red">{{ backtest.max_drawdown_pct }}%</div>
+      </div>
+    </div>
+
+    <a href="/backtest" class="btn btn-secondary mt-3">Lihat Detail Backtesting →</a>
+  </section>
+  {% endif %}
+
+  <section class="result-grid">
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <h3>Distribusi Alokasi Modal</h3>
+          <p>Proporsi dana pada setiap saham yang masuk portofolio.</p>
+        </div>
+      </div>
+
+      <div class="chart-box donut">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <h3>Efficient Frontier</h3>
+          <p>Posisi portofolio hasil optimasi dibanding titik risk-return lain.</p>
+        </div>
+      </div>
+
+      <div class="chart-box frontier">
+        <canvas id="frontierChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="allocation-card">
+    <div class="section-title">Saham yang Masuk Portofolio</div>
+    <p class="section-sub">
+      Saham berikut adalah saham yang lolos RBS dan memperoleh bobot dari Markowitz.
+    </p>
+
+    {% set colors = ['#00ffa3','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#f97316','#a78bfa'] %}
+
+    {% for a in alokasi %}
+    <div class="alloc-row">
+      <div class="alloc-left">
+        <div class="alloc-dot" style="background:{{ colors[loop.index0 % colors|length] }}"></div>
+
+        <div>
+          <div class="alloc-title">
+            {{ a.ticker }}
+            <span>{{ a.nama }}</span>
+          </div>
+
+          <div class="alloc-sub">
+            {{ a.sektor }} · {{ a.rupiah_fmt }}
+          </div>
+
+          <div class="alloc-bar-bg">
+            <div
+              class="alloc-bar"
+              style="width:{{ a.bobot_pct }}%;background:{{ colors[loop.index0 % colors|length] }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alloc-pct" style="color:{{ colors[loop.index0 % colors|length] }}">
+        {{ a.bobot_pct }}%
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="explain-card">
+    <div class="section-title">Penjelasan Hasil</div>
+
+    <div class="insight-card">
+      <div class="insight-icon">✅</div>
+      <div>
+        <div class="insight-title">Saham Dipilih Menggunakan Aturan</div>
+        <div class="insight-body">
+          Saham tidak dipilih secara manual, tetapi disaring menggunakan Rule-Based System
+          berdasarkan return, volatilitas, dan Sharpe Ratio.
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-icon">📊</div>
+      <div>
+        <div class="insight-title">Bobot Ditentukan Markowitz</div>
+        <div class="insight-body">
+          Setelah saham lolos screening, sistem menghitung bobot optimal agar risiko portofolio
+          dapat ditekan dengan tetap mempertimbangkan expected return.
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-icon">🔁</div>
+      <div>
+        <div class="insight-title">Model Bersifat Dinamis</div>
+        <div class="insight-body">
+          Model disebut dinamis karena menggunakan rolling window.
+          Artinya perhitungan dapat diperbarui mengikuti data pasar terbaru.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="btn-row mt-4">
+    <a href="/backtest" class="btn btn-secondary">📊 Lihat Backtest</a>
+    <a href="/reset" class="btn btn-primary">🔄 Mulai Ulang</a>
+  </div>
+
+  <p class="footer-note">
+    PortoCUAN · Rule-Based System · Dynamic Markowitz · Backtesting Historis
+  </p>
+
+</main>
+
+<script>
+const alokasi = {{ alokasi | tojson }};
+const colors = ['#00ffa3','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#f97316','#a78bfa'];
+
+Chart.defaults.color = '#8ba3bc';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+new Chart(pieCtx, {
+  type: 'doughnut',
+  data: {
+    labels: alokasi.map(a => `${a.ticker} · ${a.bobot_pct}%`),
+    datasets: [{
+      data: alokasi.map(a => a.bobot_pct),
+      backgroundColor: colors.slice(0, alokasi.length),
+      borderColor: '#07111f',
+      borderWidth: 3,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '58%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#8ba3bc',
+          font: { size: 11 },
+          padding: 12,
+          usePointStyle: true
+        }
+      },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `${ctx.label} = ${ctx.parsed.toFixed(2)}%`
+        }
+      }
+    }
+  }
+});
+
+const frontierData = {{ frontier|safe }};
+const portofolioTitik = {{ portofolio_titik|safe }};
+const frCtx = document.getElementById('frontierChart').getContext('2d');
+
+new Chart(frCtx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'Efficient Frontier',
+        data: frontierData.map(d => ({ x: d.risiko, y: d.return })),
+        backgroundColor: 'rgba(59,130,246,.55)',
+        borderColor: 'rgba(59,130,246,.4)',
+        pointRadius: 3,
+        showLine: true,
+        borderWidth: 1.5,
+        tension: .35
+      },
+      {
+        label: 'Portofolio Anda',
+        data: [{ x: portofolioTitik.risiko, y: portofolioTitik.return }],
+        backgroundColor: '#00ffa3',
+        pointRadius: 8,
+        pointHoverRadius: 11
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#8ba3bc', font: { size: 11 } }
+      },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% · Risiko ${ctx.parsed.x.toFixed(2)}%`
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Risiko (%)', color: '#8ba3bc' },
+        ticks: { callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Return (%)', color: '#8ba3bc' },
+        ticks: { callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

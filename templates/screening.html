@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Screening Saham - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+
+  <div class="stepper">
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step active">2</div>
+    <div class="step-line"></div>
+    <div class="step">3</div>
+    <div class="step-line"></div>
+    <div class="step">4</div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-panel">
+    <div class="eyebrow">Langkah 2 dari 4 · Rule-Based System</div>
+    <h1>Hasil Screening Saham</h1>
+    <p>
+      Sistem menyaring saham berdasarkan return tahunan, volatilitas tahunan,
+      dan Sharpe Ratio sesuai profil risiko <strong>{{ profil_risiko }}</strong>.
+    </p>
+  </section>
+
+  <section class="info-grid four">
+    <div class="info-card">
+      <div class="info-icon">📚</div>
+      <div class="info-label">Data Historis</div>
+      <div class="info-value">{{ tahun_data }} Tahun</div>
+      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🧾</div>
+      <div class="info-label">Saham Dianalisis</div>
+      <div class="info-value">{{ hasil_rbs.jumlah_dianalisis }}</div>
+      <div class="info-sub">saham memiliki data valid</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">✅</div>
+      <div class="info-label">Saham Lolos</div>
+      <div class="info-value green">{{ hasil_rbs.jumlah_lolos }}</div>
+      <div class="info-sub">masuk ke tahap Markowitz</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">❌</div>
+      <div class="info-label">Tidak Lolos</div>
+      <div class="info-value red">{{ hasil_rbs.jumlah_tidak_lolos }}</div>
+      <div class="info-sub">gagal memenuhi aturan RBS</div>
+    </div>
+  </section>
+
+  <section class="summary-card">
+    <div class="section-title">Aturan Screening Profil {{ profil_risiko }}</div>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <span>Minimum Return Tahunan</span>
+        <strong>{{ (hasil_rbs.config.min_return_tahunan * 100) | round(0) }}%</strong>
+      </div>
+
+      <div class="rule-card">
+        <span>Maksimum Volatilitas</span>
+        <strong>{{ (hasil_rbs.config.max_volatilitas * 100) | round(0) }}%</strong>
+      </div>
+
+      <div class="rule-card">
+        <span>Minimum Sharpe Ratio</span>
+        <strong>{{ hasil_rbs.config.min_sharpe }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="table-card">
+    <div class="table-head">
+      <div>
+        <h2>Saham yang Lolos RBS</h2>
+        <p>Saham berikut memenuhi kriteria dan akan masuk ke proses optimasi Markowitz.</p>
+      </div>
+    </div>
+
+    {% if hasil_rbs.lolos %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Sektor</th>
+            <th>Return</th>
+            <th>Volatilitas</th>
+            <th>Sharpe</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for s in hasil_rbs.lolos %}
+          <tr>
+            <td><strong>{{ s.saham }}</strong></td>
+            <td>{{ s.sektor }}</td>
+            <td class="green">{{ s.return_pct }}%</td>
+            <td>{{ s.volatilitas_pct }}%</td>
+            <td>{{ s.sharpe }}</td>
+            <td>{{ s.alasan }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      Tidak ada saham yang lolos. Coba ubah profil risiko atau pilih sektor lain.
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="table-card">
+    <div class="table-head">
+      <div>
+        <h2>Saham yang Tidak Lolos RBS</h2>
+        <p>Bagian ini penting untuk menjelaskan bahwa sistem benar-benar melakukan seleksi.</p>
+      </div>
+    </div>
+
+    {% if hasil_rbs.tidak_lolos %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Sektor</th>
+            <th>Return</th>
+            <th>Volatilitas</th>
+            <th>Sharpe</th>
+            <th>Alasan Tidak Lolos</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for s in hasil_rbs.tidak_lolos %}
+          <tr>
+            <td><strong>{{ s.saham }}</strong></td>
+            <td>{{ s.sektor }}</td>
+            <td>{{ s.return_pct }}%</td>
+            <td>{{ s.volatilitas_pct }}%</td>
+            <td>{{ s.sharpe }}</td>
+            <td class="red">{{ s.alasan }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      Semua saham lolos screening.
+    </div>
+    {% endif %}
+  </section>
+
+  <div class="btn-row mt-4">
+    <a href="/input" class="btn btn-secondary">← Ubah Input</a>
+    <a href="/optimasi" class="btn btn-primary">Lanjut Optimasi →</a>
+  </div>
+
+</main>
+
+</body>
+</html>

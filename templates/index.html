@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>PortoCUAN - Optimisasi Portofolio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-home">
+    <div class="hero-badge">Portfolio Optimization System</div>
+
+    <h1>
+      Optimisasi Portofolio Saham
+      <span>Investor Retail</span>
+    </h1>
+
+    <p>
+      Sistem ini membantu investor retail menyusun rekomendasi portofolio saham
+      menggunakan Rule-Based System, Dynamic Markowitz, dan Backtesting Historis.
+    </p>
+
+    <a href="/input" class="btn btn-primary hero-btn">Mulai Analisis →</a>
+  </section>
+
+  <section class="feature-grid">
+
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>Rule-Based System</h3>
+      <p>
+        Menyaring saham berdasarkan aturan return tahunan, volatilitas tahunan,
+        dan Sharpe Ratio sesuai profil risiko investor.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Dynamic Markowitz</h3>
+      <p>
+        Mengoptimalkan bobot portofolio menggunakan rolling window 12 bulan
+        sehingga model mengikuti perubahan data pasar.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>Backtesting Historis</h3>
+      <p>
+        Menguji strategi portofolio pada data historis 5 tahun dengan
+        rebalancing bulanan.
+      </p>
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

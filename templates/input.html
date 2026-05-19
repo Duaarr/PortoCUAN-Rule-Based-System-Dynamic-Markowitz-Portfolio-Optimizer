@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Input Investor - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+
+  <div class="stepper">
+    <div class="step active">1</div>
+    <div class="step-line"></div>
+    <div class="step">2</div>
+    <div class="step-line"></div>
+    <div class="step">3</div>
+    <div class="step-line"></div>
+    <div class="step">4</div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-panel">
+    <div class="eyebrow">Langkah 1 dari 4</div>
+    <h1>Input Data Investor</h1>
+    <p>
+      Masukkan informasi dasar investor. Data ini digunakan untuk menentukan
+      profil risiko, sektor saham, serta jumlah dana yang akan dialokasikan.
+    </p>
+  </section>
+
+  <form action="/input" method="POST" class="form-grid">
+
+    <section class="form-card">
+      <label class="form-label">💰 Jumlah Dana Investasi</label>
+
+      <div class="input-money">
+        <span>Rp</span>
+        <input
+          type="number"
+          name="dana_investasi"
+          value="2000000"
+          min="100000"
+          step="100000"
+          required
+        >
+      </div>
+
+      <p class="form-help">
+        Dana ini akan digunakan sebagai dasar perhitungan alokasi rupiah pada setiap saham.
+      </p>
+    </section>
+
+    <section class="form-card">
+      <label class="form-label">🛡️ Profil Risiko</label>
+
+      <div class="risk-grid">
+        <label class="risk-option">
+          <input type="radio" name="profil_risiko" value="Rendah">
+          <div>
+            <strong>Rendah</strong>
+            <span>Cenderung konservatif, risiko lebih dibatasi.</span>
+          </div>
+        </label>
+
+        <label class="risk-option">
+          <input type="radio" name="profil_risiko" value="Sedang" checked>
+          <div>
+            <strong>Sedang</strong>
+            <span>Seimbang antara potensi return dan risiko.</span>
+          </div>
+        </label>
+
+        <label class="risk-option">
+          <input type="radio" name="profil_risiko" value="Tinggi">
+          <div>
+            <strong>Tinggi</strong>
+            <span>Lebih agresif, toleransi risiko lebih besar.</span>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <label class="form-label">⏱️ Preferensi Jangka Waktu Investor</label>
+
+      <select name="jangka_waktu" class="select-input">
+        <option value="6">6 Bulan</option>
+        <option value="12" selected>12 Bulan</option>
+        <option value="24">24 Bulan</option>
+        <option value="36">36 Bulan</option>
+        <option value="60">60 Bulan</option>
+      </select>
+
+      <p class="form-help">
+        Catatan: jangka waktu ini adalah preferensi investor.
+        Sistem tetap mengambil data historis 5 tahun dan memakai rolling window
+        12 bulan untuk model Markowitz.
+      </p>
+    </section>
+
+    <section class="form-card">
+      <label class="form-label">🏢 Pilih Sektor Saham</label>
+
+      <div class="sector-grid">
+        {% for sektor in sektor_list %}
+        <label class="sector-option">
+          <input type="checkbox" name="sektor" value="{{ sektor }}" checked>
+          <span>{{ sektor }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <p class="form-help">
+        Jika semua sektor dipilih, sistem akan menganalisis seluruh daftar saham
+        yang tersedia di aplikasi.
+      </p>
+    </section>
+
+    <section class="notice-card">
+      <div class="notice-icon">ℹ️</div>
+      <div>
+        <strong>Penjelasan Periode Analisis</strong>
+        <p>
+          Data saham diambil selama 5 tahun. Setelah itu, model Markowitz memakai
+          rolling window 12 bulan terakhir untuk menghasilkan rekomendasi portofolio.
+        </p>
+      </div>
+    </section>
+
+    <div class="btn-row">
+      <a href="/" class="btn btn-secondary">← Kembali</a>
+      <button type="submit" class="btn btn-primary">Lanjut Screening →</button>
+    </div>
+
+  </form>
+
+</main>
+
+</body>
+</html>

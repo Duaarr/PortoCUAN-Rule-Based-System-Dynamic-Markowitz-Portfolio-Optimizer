@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Backtesting - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+
+  <div class="stepper">
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step active">4</div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-panel">
+    <div class="eyebrow">Langkah 4 dari 4 · Backtesting Historis</div>
+    <h1>Uji Historis Portofolio</h1>
+    <p>
+      Backtesting menguji strategi portofolio menggunakan data historis
+      <strong>{{ hasil.data_mulai }}</strong> sampai
+      <strong>{{ hasil.data_selesai }}</strong>. Model memakai rolling window
+      <strong>{{ hasil.window_bulan }} bulan</strong> dan rebalancing setiap
+      <strong>{{ hasil.step_bulan }} bulan</strong>.
+    </p>
+  </section>
+
+  <section class="info-grid three">
+    <div class="info-card">
+      <div class="info-icon">🗓️</div>
+      <div class="info-label">Periode Data Historis</div>
+      <div class="info-value">{{ hasil.data_mulai }}</div>
+      <div class="info-sub">sampai {{ hasil.data_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🧮</div>
+      <div class="info-label">Window Markowitz</div>
+      <div class="info-value">{{ hasil.window_bulan }} Bulan</div>
+      <div class="info-sub">periode perhitungan return dan kovarian</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🔁</div>
+      <div class="info-label">Rebalancing</div>
+      <div class="info-value">{{ hasil.step_bulan }} Bulan</div>
+      <div class="info-sub">{{ hasil.jumlah_window }} periode simulasi</div>
+    </div>
+  </section>
+
+  <section class="flow-card">
+    <div>
+      <div class="flow-label">Modal Awal</div>
+      <div class="flow-value">{{ hasil.modal_awal_fmt }}</div>
+    </div>
+
+    <div class="flow-arrow">→</div>
+
+    <div>
+      <div class="flow-label text-right">Modal Akhir</div>
+      <div class="flow-value green text-right">{{ hasil.modal_akhir_fmt }}</div>
+    </div>
+  </section>
+
+  <section class="metrics-grid">
+    <div class="metric-card green">
+      <div class="metric-label">Total Return</div>
+      <div class="metric-value {% if hasil.total_return_pct >= 0 %}green{% else %}red{% endif %}">
+        {% if hasil.total_return_pct >= 0 %}+{% endif %}{{ hasil.total_return_pct }}%
+      </div>
+      <div class="metric-sub">akumulasi selama backtest</div>
+    </div>
+
+    <div class="metric-card blue">
+      <div class="metric-label">CAGR</div>
+      <div class="metric-value blue">{{ hasil.return_tahunan_pct }}%</div>
+      <div class="metric-sub">return tahunan rata-rata</div>
+    </div>
+
+    <div class="metric-card red">
+      <div class="metric-label">Max Drawdown</div>
+      <div class="metric-value red">{{ hasil.max_drawdown_pct }}%</div>
+      <div class="metric-sub">penurunan terburuk</div>
+    </div>
+
+    <div class="metric-card gold">
+      <div class="metric-label">Sharpe Ratio</div>
+      <div class="metric-value gold">{{ hasil.sharpe_backtest }}</div>
+      <div class="metric-sub">return dibanding risiko</div>
+    </div>
+  </section>
+
+  <section class="chart-card">
+    <div class="chart-head">
+      <div>
+        <h3>Pertumbuhan Modal</h3>
+        <p>
+          Grafik ini menunjukkan perubahan nilai portofolio selama proses backtesting.
+        </p>
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="growthChart"></canvas>
+    </div>
+  </section>
+
+  <section class="chart-card">
+    <div class="chart-head">
+      <div>
+        <h3>Return Bulanan</h3>
+        <p>
+          Return setiap periode rebalancing. Hijau berarti positif, merah berarti negatif.
+        </p>
+      </div>
+    </div>
+
+    <div class="chart-box small">
+      <canvas id="barChart"></canvas>
+    </div>
+  </section>
+
+  <section class="explain-card">
+    <div class="section-title">Interpretasi Backtesting</div>
+
+    <div class="insight-card">
+      <div class="insight-icon">💰</div>
+      <div>
+        <div class="insight-title">Pertumbuhan Modal</div>
+        <div class="insight-body">
+          Modal awal <strong>{{ hasil.modal_awal_fmt }}</strong> menjadi
+          <strong>{{ hasil.modal_akhir_fmt }}</strong>. Total return selama backtest adalah
+          <strong>{{ hasil.total_return_pct }}%</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-icon">📉</div>
+      <div>
+        <div class="insight-title">Risiko Penurunan</div>
+        <div class="insight-body">
+          Maximum drawdown sebesar <strong>{{ hasil.max_drawdown_pct }}%</strong>
+          menunjukkan penurunan terdalam yang pernah dialami portofolio selama simulasi.
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-icon">⚖️</div>
+      <div>
+        <div class="insight-title">Sharpe Ratio</div>
+        <div class="insight-body">
+          Sharpe Ratio sebesar <strong>{{ hasil.sharpe_backtest }}</strong>.
+          Nilai ini digunakan untuk melihat apakah return yang dihasilkan cukup baik
+          dibandingkan risiko yang diambil.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="btn-row mt-4">
+    <a href="/optimasi" class="btn btn-secondary">← Kembali ke Optimasi</a>
+    <a href="/hasil" class="btn btn-primary">Lihat Hasil Final →</a>
+  </div>
+
+</main>
+
+<script>
+const cd = {{ chart_data|safe }};
+const labels = cd.labels;
+const nilaiModal = cd.nilai_modal;
+const returnBulan = cd.return_bulan;
+
+Chart.defaults.color = '#8ba3bc';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+const ctx1 = document.getElementById('growthChart').getContext('2d');
+const grad = ctx1.createLinearGradient(0, 0, 0, 300);
+grad.addColorStop(0, 'rgba(0,255,163,.22)');
+grad.addColorStop(1, 'rgba(0,255,163,0)');
+
+new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Nilai Portofolio',
+      data: nilaiModal,
+      borderColor: '#00ffa3',
+      backgroundColor: grad,
+      fill: true,
+      borderWidth: 2,
+      tension: .35,
+      pointRadius: 1.8,
+      pointHoverRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: c => 'Rp ' + Number(c.parsed.y).toLocaleString('id-ID')
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { maxTicksLimit: 8, font: { size: 10 } },
+        grid: { display: false }
+      },
+      y: {
+        ticks: {
+          font: { size: 10 },
+          callback: v => 'Rp ' + (v / 1000000).toFixed(1) + ' jt'
+        },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      }
+    }
+  }
+});
+
+const ctx2 = document.getElementById('barChart').getContext('2d');
+
+new Chart(ctx2, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Return Bulanan (%)',
+      data: returnBulan,
+      backgroundColor: returnBulan.map(v => v >= 0 ? 'rgba(0,255,163,.75)' : 'rgba(239,68,68,.75)'),
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%'
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { maxTicksLimit: 10, font: { size: 9 } },
+        grid: { display: false }
+      },
+      y: {
+        ticks: {
+          font: { size: 10 },
+          callback: v => v + '%'
+        },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

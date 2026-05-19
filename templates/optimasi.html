@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Optimasi Markowitz - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+
+  <div class="stepper">
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step done">✓</div>
+    <div class="step-line done"></div>
+    <div class="step active">3</div>
+    <div class="step-line"></div>
+    <div class="step">4</div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="hero-panel">
+    <div class="eyebrow">Langkah 3 dari 4 · Dynamic Markowitz</div>
+    <h1>Hasil Optimasi Portofolio</h1>
+    <p>
+      Saham yang lolos Rule-Based System dihitung menggunakan model Markowitz
+      pada rolling window <strong>{{ window_bulan }} bulan terakhir</strong>.
+    </p>
+  </section>
+
+  <section class="info-grid four">
+    <div class="info-card">
+      <div class="info-icon">📚</div>
+      <div class="info-label">Data Historis</div>
+      <div class="info-value">{{ tahun_data }} Tahun</div>
+      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">🧮</div>
+      <div class="info-label">Window Optimasi</div>
+      <div class="info-value">{{ window_bulan }} Bulan</div>
+      <div class="info-sub">{{ periode_mulai }} → {{ periode_selesai }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">✅</div>
+      <div class="info-label">Saham Lolos RBS</div>
+      <div class="info-value green">{{ jumlah_lolos }}</div>
+      <div class="info-sub">digunakan dalam optimasi</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">💰</div>
+      <div class="info-label">Dana Investasi</div>
+      <div class="info-value">{{ hasil.dana_fmt }}</div>
+      <div class="info-sub">total modal dialokasikan</div>
+    </div>
+  </section>
+
+  <section class="metrics-grid">
+    <div class="metric-card green">
+      <div class="metric-label">Expected Return</div>
+      <div class="metric-value green">{{ hasil.expected_return_pct }}%</div>
+      <div class="metric-sub">estimasi return tahunan</div>
+    </div>
+
+    <div class="metric-card blue">
+      <div class="metric-label">Expected Risk</div>
+      <div class="metric-value blue">{{ hasil.expected_risk_pct }}%</div>
+      <div class="metric-sub">volatilitas tahunan</div>
+    </div>
+
+    <div class="metric-card gold">
+      <div class="metric-label">Sharpe Ratio</div>
+      <div class="metric-value gold">{{ hasil.sharpe_ratio }}</div>
+      <div class="metric-sub">return per unit risiko</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">Jumlah Saham Portofolio</div>
+      <div class="metric-value">{{ hasil.alokasi|length }}</div>
+      <div class="metric-sub">hasil akhir bobot Markowitz</div>
+    </div>
+  </section>
+
+  <section class="notice-card">
+    <div class="notice-icon">ℹ️</div>
+    <div>
+      <strong>Catatan Perhitungan</strong>
+      <p>
+        Grafik dan bobot di halaman ini adalah hasil optimasi terbaru.
+        Data historis tetap 5 tahun, tetapi perhitungan Markowitz memakai
+        window 12 bulan terakhir agar model lebih dinamis.
+      </p>
+    </div>
+  </section>
+
+  <section class="result-grid">
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <h3>Distribusi Alokasi Modal</h3>
+          <p>Proporsi dana pada setiap saham hasil optimasi.</p>
+        </div>
+      </div>
+
+      <div class="chart-box donut">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <h3>Efficient Frontier</h3>
+          <p>Titik hijau menunjukkan posisi portofolio hasil optimasi.</p>
+        </div>
+      </div>
+
+      <div class="chart-box frontier">
+        <canvas id="frontierChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="allocation-card">
+    <div class="section-title">Alokasi Saham Hasil Markowitz</div>
+    <p class="section-sub">
+      Bobot berikut dihitung dari saham yang sudah lolos Rule-Based System.
+    </p>
+
+    {% set colors = ['#00ffa3','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#f97316','#a78bfa'] %}
+
+    {% for a in hasil.alokasi %}
+    <div class="alloc-row">
+      <div class="alloc-left">
+        <div class="alloc-dot" style="background:{{ colors[loop.index0 % colors|length] }}"></div>
+
+        <div>
+          <div class="alloc-title">
+            {{ a.ticker }}
+            <span>{{ a.nama }}</span>
+          </div>
+
+          <div class="alloc-sub">
+            {{ a.sektor }} · {{ a.rupiah_fmt }}
+          </div>
+
+          <div class="alloc-bar-bg">
+            <div
+              class="alloc-bar"
+              style="width:{{ a.bobot_pct }}%;background:{{ colors[loop.index0 % colors|length] }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alloc-pct" style="color:{{ colors[loop.index0 % colors|length] }}">
+        {{ a.bobot_pct }}%
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <div class="btn-row mt-4">
+    <a href="/screening" class="btn btn-secondary">← Kembali ke Screening</a>
+    <a href="/backtest" class="btn btn-primary">Lanjut Backtesting →</a>
+  </div>
+
+</main>
+
+<script>
+const alokasi = {{ hasil.alokasi | tojson }};
+const colors = ['#00ffa3','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#f97316','#a78bfa'];
+
+Chart.defaults.color = '#8ba3bc';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+new Chart(pieCtx, {
+  type: 'doughnut',
+  data: {
+    labels: alokasi.map(a => `${a.ticker} · ${a.bobot_pct}%`),
+    datasets: [{
+      data: alokasi.map(a => a.bobot_pct),
+      backgroundColor: colors.slice(0, alokasi.length),
+      borderColor: '#07111f',
+      borderWidth: 3,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '58%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#8ba3bc',
+          font: { size: 11 },
+          padding: 12,
+          usePointStyle: true
+        }
+      },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `${ctx.label} = ${ctx.parsed.toFixed(2)}%`
+        }
+      }
+    }
+  }
+});
+
+const frontierData = {{ frontier_titik|safe }};
+const portofolioTitik = {{ portofolio_titik|safe }};
+const frCtx = document.getElementById('frontierChart').getContext('2d');
+
+new Chart(frCtx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'Efficient Frontier',
+        data: frontierData.map(d => ({ x: d.risiko, y: d.return })),
+        backgroundColor: 'rgba(59,130,246,.55)',
+        borderColor: 'rgba(59,130,246,.4)',
+        pointRadius: 3,
+        showLine: true,
+        borderWidth: 1.5,
+        tension: .35
+      },
+      {
+        label: 'Portofolio Anda',
+        data: [{ x: portofolioTitik.risiko, y: portofolioTitik.return }],
+        backgroundColor: '#00ffa3',
+        pointRadius: 8,
+        pointHoverRadius: 11
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#8ba3bc', font: { size: 11 } }
+      },
+      tooltip: {
+        backgroundColor: '#0f172a',
+        borderColor: 'rgba(255,255,255,.12)',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% · Risiko ${ctx.parsed.x.toFixed(2)}%`
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Risiko (%)', color: '#8ba3bc' },
+        ticks: { callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Return (%)', color: '#8ba3bc' },
+        ticks: { callback: v => v + '%' },
+        grid: { color: 'rgba(255,255,255,.05)' }
+      }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

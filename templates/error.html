@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Error - PortoCUAN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="page">
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">📈</div>
+    Porto<span>CUAN</span>
+  </a>
+</nav>
+
+<main class="wrap">
+
+  <section class="error-panel">
+    <div class="error-icon">⚠️</div>
+    <div class="eyebrow red-text">Terjadi Kesalahan</div>
+
+    <h1>Proses Tidak Dapat Dilanjutkan</h1>
+
+    <p>
+      Sistem menemukan kendala saat memproses data portofolio.
+      Detail error ditampilkan di bawah ini.
+    </p>
+
+    <div class="error-box">
+      {{ pesan }}
+    </div>
+
+    <section class="explain-card">
+      <div class="section-title">Kemungkinan Penyebab</div>
+
+      <div class="insight-card">
+        <div class="insight-icon">🌐</div>
+        <div>
+          <div class="insight-title">Koneksi Internet</div>
+          <div class="insight-body">
+            Data saham diambil dari Yahoo Finance, sehingga koneksi internet harus stabil.
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">📉</div>
+        <div>
+          <div class="insight-title">Saham Lolos Terlalu Sedikit</div>
+          <div class="insight-body">
+            Jika saham yang lolos RBS terlalu sedikit, coba ubah profil risiko ke Tinggi
+            atau pilih lebih banyak sektor.
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-icon">📦</div>
+        <div>
+          <div class="insight-title">Library Belum Terinstall</div>
+          <div class="insight-body">
+            Pastikan sudah menjalankan <code>pip install -r requirements.txt</code>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="btn-row center mt-4">
+      <a href="javascript:history.back()" class="btn btn-secondary">← Kembali</a>
+      <a href="/reset" class="btn btn-primary">Mulai Ulang</a>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
