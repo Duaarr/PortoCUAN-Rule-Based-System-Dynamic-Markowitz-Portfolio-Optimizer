@@ -1,18 +1,24 @@
 """
 app.py
+
 Pintu masuk aplikasi Flask PortoCUAN.
 
 Alur aplikasi:
 1. /          : halaman utama
-2. /input     : input dana, profil risiko, jangka waktu, dan sektor
+2. /input     : input dana, profil risiko, dan sektor
 3. /screening : Rule-Based System untuk menentukan saham lolos/tidak lolos
 4. /optimasi  : Dynamic Markowitz pada window 12 bulan terakhir
-5. /backtest  : simulasi historis 5 tahun dengan rebalancing bulanan
+5. /backtest  : simulasi historis dengan rolling window dan rebalancing bulanan
 6. /hasil     : ringkasan final rekomendasi portofolio
+
+Versi terbaru:
+- Metadata data historis dipisahkan dari tanggal rebalancing.
+- Backtesting menampilkan jadwal rebalancing yang jelas.
 """
 
 import json
 import traceback
+
 from flask import Flask, render_template, request, session, redirect, url_for
 
 from logic.data_fetcher import (
@@ -22,25 +28,33 @@ from logic.data_fetcher import (
     get_semua_saham,
     hitung_return_harian,
 )
+
 from logic.rbs import jalankan_rbs
 from logic.rolling import ambil_window_terakhir
+
 from logic.markowitz import (
     INFO_SAHAM,
     format_hasil_untuk_tampilan,
     hitung_efficient_frontier,
     optimasi_portofolio_qp,
 )
-from logic.backtest import jalankan_backtest, format_backtest_untuk_chart
+
+from logic.backtest import (
+    jalankan_backtest,
+    format_backtest_untuk_chart,
+)
 
 
 app = Flask(__name__)
 app.secret_key = 'skripsi-portofolio-2026'
 
-# Konstanta utama penelitian
+
+# Konstanta utama penelitian.
 TAHUN_DATA = 5
 WINDOW_BULAN = 12
 STEP_BULAN = 1
 MIN_SAHAM_LOLOS = 3
+
 
 _cache_data = {}
 
@@ -50,6 +64,7 @@ def _get_data_harga(tickers: list[str]):
     Cache data supaya Yahoo Finance tidak dipanggil berulang-ulang.
     Kalau ticker sama, data lama dipakai lagi.
     """
+
     key = tuple(sorted(tickers))
 
     if key not in _cache_data:
@@ -66,11 +81,16 @@ def _get_data_harga(tickers: list[str]):
 def _metadata_data(data_harga):
     """
     Membuat metadata periode data untuk UI.
-    Ini penting supaya UI bisa menjelaskan:
-    - data 5 tahun dari tanggal berapa sampai tanggal berapa,
-    - jumlah saham valid,
-    - jumlah hari perdagangan.
+
+    Metadata ini menjelaskan:
+    - data historis mulai dari tanggal berapa,
+    - data historis selesai di tanggal berapa,
+    - jumlah hari perdagangan,
+    - jumlah saham valid.
+
+    Ini berbeda dari tanggal rebalancing.
     """
+
     if data_harga is None or data_harga.empty:
         return {
             'tahun_data': TAHUN_DATA,
@@ -94,6 +114,7 @@ def _batas_bobot(profil_risiko: str):
     Constraint bobot berdasarkan profil risiko.
     Semakin tinggi profil risiko, semakin besar bobot maksimum per saham.
     """
+
     batas = {
         'Rendah': (0.05, 0.35),
         'Sedang': (0.05, 0.40),
@@ -107,6 +128,7 @@ def _kategori_risiko(expected_risk_pct: float) -> str:
     """
     Memberi label risiko berdasarkan volatilitas portofolio.
     """
+
     if expected_risk_pct < 10:
         return 'Konservatif'
 
@@ -124,17 +146,27 @@ def index():
 @app.route('/input', methods=['GET', 'POST'])
 def input_data():
     if request.method == 'GET':
-        return render_template('input.html', sektor_list=list(SEKTOR_SAHAM.keys()))
+        return render_template(
+            'input.html',
+            sektor_list=list(SEKTOR_SAHAM.keys())
+        )
 
-    session['dana_investasi'] = float(request.form.get('dana_investasi', 2_000_000))
+    session['dana_investasi'] = float(
+        request.form.get('dana_investasi', 2_000_000)
+    )
     session['profil_risiko'] = request.form.get('profil_risiko', 'Sedang')
-    session['jangka_waktu'] = int(request.form.get('jangka_waktu', 12))
     session['sektor_terpilih'] = request.form.getlist('sektor')
+
+    # Jika user tidak memilih sektor, sistem memakai semua sektor.
+    if not session['sektor_terpilih']:
+        session['sektor_terpilih'] = list(SEKTOR_SAHAM.keys())
 
     # Bersihkan hasil lama supaya percobaan baru tidak tercampur.
     session.pop('hasil_rbs_json', None)
     session.pop('hasil_optimasi_json', None)
     session.pop('backtest_json', None)
+    session.pop('saham_lolos', None)
+
     _cache_data.clear()
 
     return redirect(url_for('screening'))
@@ -186,7 +218,10 @@ def screening():
 
     except Exception as exc:
         traceback.print_exc()
-        return render_template('error.html', pesan=f'Error screening: {exc}')
+        return render_template(
+            'error.html',
+            pesan=f'Error screening: {exc}'
+        )
 
 
 @app.route('/optimasi')
@@ -198,15 +233,21 @@ def optimasi():
     if len(saham_lolos) < MIN_SAHAM_LOLOS:
         return render_template(
             'error.html',
-            pesan=f'Saham yang lolos hanya {len(saham_lolos)}. Minimal {MIN_SAHAM_LOLOS}. '
-                  f'Coba ubah profil risiko ke Tinggi atau pilih lebih banyak sektor.'
+            pesan=(
+                f'Saham yang lolos hanya {len(saham_lolos)}. '
+                f'Minimal {MIN_SAHAM_LOLOS}. '
+                f'Coba ubah profil risiko ke Tinggi atau pilih lebih banyak sektor.'
+            )
         )
 
     try:
         data_harga = _get_data_harga(saham_lolos)
 
         if data_harga.empty:
-            return render_template('error.html', pesan='Data saham lolos tidak tersedia untuk optimasi.')
+            return render_template(
+                'error.html',
+                pesan='Data saham lolos tidak tersedia untuk optimasi.'
+            )
 
         rolling = ambil_window_terakhir(data_harga, WINDOW_BULAN)
 
@@ -265,10 +306,13 @@ def optimasi():
             'tahun_data': TAHUN_DATA,
             'data_mulai': meta['data_mulai'],
             'data_selesai': meta['data_selesai'],
+
+            # Window optimasi terbaru.
             'window_mulai': str(rolling['periode_mulai'].date()),
             'window_selesai': str(rolling['periode_selesai'].date()),
             'window_bulan': WINDOW_BULAN,
             'step_bulan': STEP_BULAN,
+
             'jumlah_saham_valid': meta['jumlah_saham_valid'],
             'jumlah_lolos': len(saham_lolos),
         })
@@ -290,7 +334,10 @@ def optimasi():
 
     except Exception as exc:
         traceback.print_exc()
-        return render_template('error.html', pesan=f'Error optimasi: {exc}')
+        return render_template(
+            'error.html',
+            pesan=f'Error optimasi: {exc}'
+        )
 
 
 @app.route('/backtest')
@@ -306,7 +353,10 @@ def backtest():
         data_harga = _get_data_harga(saham_lolos)
 
         if data_harga.empty:
-            return render_template('error.html', pesan='Data saham tidak tersedia untuk backtesting.')
+            return render_template(
+                'error.html',
+                pesan='Data saham tidak tersedia untuk backtesting.'
+            )
 
         hasil_bt = jalankan_backtest(
             data_harga,
@@ -317,7 +367,10 @@ def backtest():
         )
 
         if hasil_bt.get('status') != 'berhasil':
-            return render_template('error.html', pesan=hasil_bt.get('pesan', 'Backtesting gagal.'))
+            return render_template(
+                'error.html',
+                pesan=hasil_bt.get('pesan', 'Backtesting gagal.')
+            )
 
         chart_data = format_backtest_untuk_chart(hasil_bt)
 
@@ -331,13 +384,22 @@ def backtest():
             'jumlah_window': hasil_bt['jumlah_window'],
             'chart': chart_data,
 
+            # Jadwal rebalancing.
+            'jadwal_rebalancing': hasil_bt.get('jadwal_rebalancing', []),
+            'rebalancing_pertama': hasil_bt.get('rebalancing_pertama', '-'),
+            'rebalancing_terakhir': hasil_bt.get('rebalancing_terakhir', '-'),
+
             # Metadata periode backtest.
             'data_mulai': hasil_bt['data_mulai'],
             'data_selesai': hasil_bt['data_selesai'],
             'backtest_mulai': hasil_bt['backtest_mulai'],
             'backtest_selesai': hasil_bt['backtest_selesai'],
+
+            # Konfigurasi.
             'window_bulan': hasil_bt['window_bulan'],
             'step_bulan': hasil_bt['step_bulan'],
+            'window_hari': hasil_bt.get('window_hari', 252),
+            'step_hari': hasil_bt.get('step_hari', 21),
             'tahun_data': TAHUN_DATA,
         })
 
@@ -349,13 +411,15 @@ def backtest():
 
     except Exception as exc:
         traceback.print_exc()
-        return render_template('error.html', pesan=f'Error backtest: {exc}')
+        return render_template(
+            'error.html',
+            pesan=f'Error backtest: {exc}'
+        )
 
 
 @app.route('/hasil')
 def hasil():
     profil_risiko = session.get('profil_risiko', 'Sedang')
-    jangka_waktu = session.get('jangka_waktu', 12)
 
     opt_json = session.get('hasil_optimasi_json')
     bt_json = session.get('backtest_json')
@@ -372,6 +436,8 @@ def hasil():
 
     return render_template(
         'hasil.html',
+
+        # Hasil optimasi.
         alokasi=opt['alokasi'],
         expected_return=opt['expected_return_pct'],
         expected_risk=opt['expected_risk_pct'],
@@ -379,13 +445,14 @@ def hasil():
         dana_fmt=opt['dana_fmt'],
         kategori_risiko=kategori,
         profil_risiko=profil_risiko,
-        jangka_waktu=jangka_waktu,
         frontier=json.dumps(opt.get('frontier', [])),
         portofolio_titik=json.dumps(opt.get('portofolio_titik', {})),
+
+        # Hasil backtest.
         backtest=bt,
         hasil_rbs=rbs,
 
-        # Metadata untuk UI.
+        # Metadata periode sistem.
         tahun_data=opt.get('tahun_data', TAHUN_DATA),
         data_mulai=opt.get('data_mulai', '-'),
         data_selesai=opt.get('data_selesai', '-'),
