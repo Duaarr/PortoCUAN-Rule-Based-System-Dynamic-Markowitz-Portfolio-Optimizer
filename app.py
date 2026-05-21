@@ -1,7 +1,7 @@
 """
 app.py
 
-Pintu masuk aplikasi Flask PortoCUAN.
+Pintu masuk aplikasi Flask PORTOCUAN.
 
 Alur aplikasi:
 1. /          : halaman utama
