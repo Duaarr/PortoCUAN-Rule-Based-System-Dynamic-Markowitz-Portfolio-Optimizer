@@ -137,7 +137,6 @@ def ambil_data_saham(tickers: list[str], tahun: int = 5) -> pd.DataFrame:
 
 
 def hitung_return_harian(data: pd.DataFrame) -> pd.DataFrame:
-    """Menghitung return harian dari harga saham."""
     if data is None or data.empty:
         return pd.DataFrame()
 
