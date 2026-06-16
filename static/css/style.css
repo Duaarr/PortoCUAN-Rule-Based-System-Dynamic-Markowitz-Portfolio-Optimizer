@@ -1060,3 +1060,16 @@ code {
     min-width: 760px;
   }
 }
+
+.muted-text {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.table-wrap table td strong.green {
+  font-weight: 900;
+}
+
+.notice-card strong {
+  color: var(--text);
+}
