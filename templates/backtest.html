@@ -12,16 +12,16 @@
 
 <nav class="navbar">
   <a href="/" class="nav-brand">
-    <div class="nav-logo">📈</div>
+    <div class="nav-logo">PC</div>
     Porto<span>CUAN</span>
   </a>
 
   <div class="stepper">
-    <div class="step done">✓</div>
+    <div class="step done">1</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">2</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">3</div>
     <div class="step-line done"></div>
     <div class="step active">4</div>
   </div>
@@ -30,37 +30,75 @@
 <main class="wrap">
 
   <section class="hero-panel">
-    <div class="eyebrow">Langkah 4 dari 4 · Backtesting Historis</div>
+    <div class="eyebrow">Langkah 4 dari 4 - Backtesting Historis</div>
     <h1>Uji Historis Portofolio</h1>
     <p>
       Backtesting menguji strategi portofolio menggunakan data historis
       <strong>{{ hasil.data_mulai }}</strong> sampai
-      <strong>{{ hasil.data_selesai }}</strong>. Model memakai rolling window
-      <strong>{{ hasil.window_bulan }} bulan</strong> dan rebalancing setiap
-      <strong>{{ hasil.step_bulan }} bulan</strong>.
+      <strong>{{ hasil.data_selesai }}</strong>. Model memakai window training
+      <strong>{{ hasil.window_bulan }} bulan</strong> atau sekitar
+      <strong>{{ hasil.window_hari }} hari perdagangan</strong>, kemudian rebalancing
+      dilakukan setiap <strong>{{ hasil.step_bulan }} bulan</strong> atau sekitar
+      <strong>{{ hasil.step_hari }} hari perdagangan</strong>.
     </p>
+  </section>
+
+  <section class="notice-card">
+    <div class="notice-icon">INFO</div>
+    <div>
+      <strong>Perbedaan Metadata dan Tanggal Rebalancing</strong>
+      <p>
+        Metadata data historis hanya menunjukkan rentang data harga saham yang tersedia.
+        Tanggal rebalancing menunjukkan hari perdagangan ketika bobot portofolio baru
+        mulai diterapkan. Pada sistem ini, tanggal rebalancing adalah hari perdagangan
+        pertama setelah window training 12 bulan selesai.
+      </p>
+    </div>
   </section>
 
   <section class="info-grid three">
     <div class="info-card">
-      <div class="info-icon">🗓️</div>
-      <div class="info-label">Periode Data Historis</div>
+      <div class="info-icon">01</div>
+      <div class="info-label">Metadata Data Historis</div>
       <div class="info-value">{{ hasil.data_mulai }}</div>
       <div class="info-sub">sampai {{ hasil.data_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🧮</div>
-      <div class="info-label">Window Markowitz</div>
-      <div class="info-value">{{ hasil.window_bulan }} Bulan</div>
-      <div class="info-sub">periode perhitungan return dan kovarian</div>
+      <div class="info-icon">02</div>
+      <div class="info-label">Rebalancing Pertama</div>
+      <div class="info-value green">{{ hasil.rebalancing_pertama }}</div>
+      <div class="info-sub">hari pertama bobot mulai diterapkan</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🔁</div>
-      <div class="info-label">Rebalancing</div>
-      <div class="info-value">{{ hasil.step_bulan }} Bulan</div>
+      <div class="info-icon">03</div>
+      <div class="info-label">Rebalancing Terakhir</div>
+      <div class="info-value">{{ hasil.rebalancing_terakhir }}</div>
       <div class="info-sub">{{ hasil.jumlah_window }} periode simulasi</div>
+    </div>
+  </section>
+
+  <section class="info-grid three">
+    <div class="info-card">
+      <div class="info-icon">04</div>
+      <div class="info-label">Window Training</div>
+      <div class="info-value">{{ hasil.window_bulan }} Bulan</div>
+      <div class="info-sub">sekitar {{ hasil.window_hari }} hari perdagangan</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">05</div>
+      <div class="info-label">Periode Uji</div>
+      <div class="info-value">{{ hasil.step_bulan }} Bulan</div>
+      <div class="info-sub">sekitar {{ hasil.step_hari }} hari perdagangan setelah rebalancing</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-icon">06</div>
+      <div class="info-label">Periode Backtest Efektif</div>
+      <div class="info-value">{{ hasil.backtest_mulai }}</div>
+      <div class="info-sub">sampai {{ hasil.backtest_selesai }}</div>
     </div>
   </section>
 
@@ -70,7 +108,7 @@
       <div class="flow-value">{{ hasil.modal_awal_fmt }}</div>
     </div>
 
-    <div class="flow-arrow">→</div>
+    <div class="flow-arrow">MENJADI</div>
 
     <div>
       <div class="flow-label text-right">Modal Akhir</div>
@@ -90,13 +128,13 @@
     <div class="metric-card blue">
       <div class="metric-label">CAGR</div>
       <div class="metric-value blue">{{ hasil.return_tahunan_pct }}%</div>
-      <div class="metric-sub">return tahunan rata-rata</div>
+      <div class="metric-sub">return tahunan rata-rata majemuk</div>
     </div>
 
     <div class="metric-card red">
       <div class="metric-label">Max Drawdown</div>
       <div class="metric-value red">{{ hasil.max_drawdown_pct }}%</div>
-      <div class="metric-sub">penurunan terburuk</div>
+      <div class="metric-sub">penurunan terdalam dari puncak modal</div>
     </div>
 
     <div class="metric-card gold">
@@ -111,7 +149,8 @@
       <div>
         <h3>Pertumbuhan Modal</h3>
         <p>
-          Grafik ini menunjukkan perubahan nilai portofolio selama proses backtesting.
+          Grafik ini menunjukkan nilai modal setelah setiap periode uji selesai.
+          Label grafik bukan tanggal rebalancing, melainkan akhir periode uji.
         </p>
       </div>
     </div>
@@ -124,9 +163,10 @@
   <section class="chart-card">
     <div class="chart-head">
       <div>
-        <h3>Return Bulanan</h3>
+        <h3>Return Periode</h3>
         <p>
-          Return setiap periode rebalancing. Hijau berarti positif, merah berarti negatif.
+          Return dihitung dari hasil penerapan bobot portofolio pada periode uji
+          1 bulan perdagangan setelah rebalancing.
         </p>
       </div>
     </div>
@@ -136,48 +176,107 @@
     </div>
   </section>
 
+  <section class="table-card">
+    <div class="table-head">
+      <h2>Jadwal Rebalancing Portofolio</h2>
+      <p>
+        Tabel ini membedakan antara window training, tanggal rebalancing,
+        dan periode uji. Tanggal rebalancing adalah hari perdagangan pertama
+        setelah window training selesai.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Periode</th>
+            <th>Window Training 12 Bulan</th>
+            <th>Tanggal Rebalancing</th>
+            <th>Periode Uji</th>
+            <th>Return Periode</th>
+            <th>Modal Akhir</th>
+            <th>Saham Dipakai</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in hasil.jadwal_rebalancing %}
+          <tr>
+            <td>{{ item.periode }}</td>
+
+            <td>
+              {{ item.training_mulai }}<br>
+              <span class="muted-text">sampai {{ item.training_selesai }}</span>
+            </td>
+
+            <td>
+              <strong class="green">{{ item.tanggal_rebalancing }}</strong>
+            </td>
+
+            <td>
+              {{ item.testing_mulai }}<br>
+              <span class="muted-text">sampai {{ item.testing_selesai }}</span>
+            </td>
+
+            <td class="{% if item.return_periode >= 0 %}green{% else %}red{% endif %}">
+              {% if item.return_periode >= 0 %}+{% endif %}{{ item.return_periode }}%
+            </td>
+
+            <td>
+              Rp {{ "{:,.0f}".format(item.modal_akhir).replace(",", ".") }}
+            </td>
+
+            <td>{{ item.jumlah_saham }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="explain-card">
     <div class="section-title">Interpretasi Backtesting</div>
 
     <div class="insight-card">
-      <div class="insight-icon">💰</div>
+      <div class="insight-icon">01</div>
       <div>
-        <div class="insight-title">Pertumbuhan Modal</div>
+        <div class="insight-title">Window Training</div>
         <div class="insight-body">
-          Modal awal <strong>{{ hasil.modal_awal_fmt }}</strong> menjadi
-          <strong>{{ hasil.modal_akhir_fmt }}</strong>. Total return selama backtest adalah
-          <strong>{{ hasil.total_return_pct }}%</strong>.
+          Window training adalah data 12 bulan sebelumnya yang digunakan untuk menghitung
+          return tahunan, covariance matrix, dan bobot Markowitz. Data ini bukan periode uji.
         </div>
       </div>
     </div>
 
     <div class="insight-card">
-      <div class="insight-icon">📉</div>
+      <div class="insight-icon">02</div>
       <div>
-        <div class="insight-title">Risiko Penurunan</div>
+        <div class="insight-title">Tanggal Rebalancing</div>
         <div class="insight-body">
-          Maximum drawdown sebesar <strong>{{ hasil.max_drawdown_pct }}%</strong>
-          menunjukkan penurunan terdalam yang pernah dialami portofolio selama simulasi.
+          Tanggal rebalancing adalah tanggal ketika bobot portofolio baru mulai digunakan.
+          Pada program ini, tanggal tersebut adalah hari perdagangan pertama setelah window
+          training 12 bulan selesai.
         </div>
       </div>
     </div>
 
     <div class="insight-card">
-      <div class="insight-icon">⚖️</div>
+      <div class="insight-icon">03</div>
       <div>
-        <div class="insight-title">Sharpe Ratio</div>
+        <div class="insight-title">Periode Uji</div>
         <div class="insight-body">
-          Sharpe Ratio sebesar <strong>{{ hasil.sharpe_backtest }}</strong>.
-          Nilai ini digunakan untuk melihat apakah return yang dihasilkan cukup baik
-          dibandingkan risiko yang diambil.
+          Periode uji adalah 1 bulan perdagangan setelah rebalancing. Return portofolio
+          pada periode inilah yang digunakan untuk memperbarui modal dan menghitung
+          total return, CAGR, max drawdown, serta Sharpe Ratio backtest.
         </div>
       </div>
     </div>
   </section>
 
   <div class="btn-row mt-4">
-    <a href="/optimasi" class="btn btn-secondary">← Kembali ke Optimasi</a>
-    <a href="/hasil" class="btn btn-primary">Lihat Hasil Final →</a>
+    <a href="/optimasi" class="btn btn-secondary">Kembali ke Optimasi</a>
+    <a href="/hasil" class="btn btn-primary">Lihat Hasil Final</a>
   </div>
 
 </main>
@@ -249,7 +348,7 @@ new Chart(ctx2, {
   data: {
     labels: labels,
     datasets: [{
-      label: 'Return Bulanan (%)',
+      label: 'Return Periode (%)',
       data: returnBulan,
       backgroundColor: returnBulan.map(v => v >= 0 ? 'rgba(0,255,163,.75)' : 'rgba(239,68,68,.75)'),
       borderRadius: 5,
