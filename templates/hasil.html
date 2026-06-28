@@ -12,18 +12,18 @@
 
 <nav class="navbar">
   <a href="/" class="nav-brand">
-    <div class="nav-logo">📈</div>
+    <div class="nav-logo">PC</div>
     Porto<span>CUAN</span>
   </a>
 
   <div class="stepper">
-    <div class="step done">✓</div>
+    <div class="step done">1</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">2</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">3</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">4</div>
   </div>
 </nav>
 
@@ -34,28 +34,28 @@
     <h1>Ringkasan Final Portofolio</h1>
     <p>
       Rekomendasi ini dibuat dari saham yang lolos Rule-Based System,
-      lalu dioptimalkan menggunakan Dynamic Markowitz pada rolling window
-      <strong>{{ window_bulan }} bulan terakhir</strong>.
+      kemudian dioptimalkan menggunakan Dynamic Markowitz berdasarkan
+      <strong>window optimasi terbaru {{ window_bulan }} bulan</strong>.
     </p>
   </section>
 
   <section class="info-grid three">
     <div class="info-card">
-      <div class="info-icon">📚</div>
-      <div class="info-label">Data Historis</div>
+      <div class="info-icon">01</div>
+      <div class="info-label">Data Historis Tersedia</div>
       <div class="info-value">{{ tahun_data }} Tahun</div>
-      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+      <div class="info-sub">{{ data_mulai }} sampai {{ data_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🧮</div>
-      <div class="info-label">Window Optimasi</div>
+      <div class="info-icon">02</div>
+      <div class="info-label">Window Optimasi Terbaru</div>
       <div class="info-value">{{ window_bulan }} Bulan</div>
-      <div class="info-sub">{{ window_mulai }} → {{ window_selesai }}</div>
+      <div class="info-sub">{{ window_mulai }} sampai {{ window_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🛡️</div>
+      <div class="info-icon">03</div>
       <div class="info-label">Profil Risiko</div>
       <div class="info-value">{{ profil_risiko }}</div>
       <div class="info-sub">Kategori portofolio: {{ kategori_risiko }}</div>
@@ -63,14 +63,15 @@
   </section>
 
   <section class="notice-card">
-    <div class="notice-icon">ℹ️</div>
     <div>
-      <strong>Kenapa ada 5 tahun dan 12 bulan?</strong>
+      <strong>Penjelasan 5 tahun, 12 bulan, dan 1 bulan</strong>
       <p>
-        Data historis yang diambil adalah <strong>5 tahun</strong>.
-        Namun, Markowitz memakai <strong>rolling window 12 bulan terakhir</strong>
-        agar rekomendasi lebih mengikuti kondisi pasar terbaru.
-        Pada backtesting, window ini digeser setiap <strong>{{ step_bulan }} bulan</strong>.
+        Data historis yang tersedia adalah <strong>{{ tahun_data }} tahun</strong>.
+        Namun, rekomendasi portofolio terbaru tidak dihitung dari seluruh data 5 tahun
+        secara langsung. Sistem memakai <strong>window optimasi {{ window_bulan }} bulan terakhir</strong>
+        agar hasil lebih mengikuti kondisi pasar terbaru. Pada proses backtesting,
+        window 12 bulan tersebut digeser setiap <strong>{{ step_bulan }} bulan</strong>
+        untuk mensimulasikan rebalancing bulanan.
       </p>
     </div>
   </section>
@@ -85,13 +86,13 @@
     <div class="metric-card green">
       <div class="metric-label">Expected Return</div>
       <div class="metric-value green">{{ expected_return }}%</div>
-      <div class="metric-sub">estimasi return tahunan</div>
+      <div class="metric-sub">estimasi return tahunan dari window optimasi</div>
     </div>
 
     <div class="metric-card blue">
       <div class="metric-label">Expected Risk</div>
       <div class="metric-value blue">{{ expected_risk }}%</div>
-      <div class="metric-sub">volatilitas tahunan</div>
+      <div class="metric-sub">volatilitas tahunan dari window optimasi</div>
     </div>
 
     <div class="metric-card gold">
@@ -105,13 +106,15 @@
   <section class="summary-card">
     <div class="section-title">Ringkasan Backtesting Historis</div>
     <p class="section-sub">
-      Backtesting digunakan untuk menguji bagaimana strategi ini berjalan pada data historis.
+      Backtesting digunakan untuk menguji bagaimana metode berjalan pada data historis.
+      Proses ini memakai rolling window {{ window_bulan }} bulan yang digeser setiap
+      {{ step_bulan }} bulan, bukan menghitung seluruh data 5 tahun dalam satu kali optimasi.
     </p>
 
     <div class="info-grid four compact">
       <div class="mini-stat">
         <div class="mini-label">Periode Backtest</div>
-        <div class="mini-value">{{ backtest.backtest_mulai }} → {{ backtest.backtest_selesai }}</div>
+        <div class="mini-value">{{ backtest.backtest_mulai }} sampai {{ backtest.backtest_selesai }}</div>
       </div>
 
       <div class="mini-stat">
@@ -132,7 +135,7 @@
       </div>
     </div>
 
-    <a href="/backtest" class="btn btn-secondary mt-3">Lihat Detail Backtesting →</a>
+    <a href="/backtest" class="btn btn-secondary mt-3">Lihat Detail Backtesting</a>
   </section>
   {% endif %}
 
@@ -141,7 +144,9 @@
       <div class="chart-head">
         <div>
           <h3>Distribusi Alokasi Modal</h3>
-          <p>Proporsi dana pada setiap saham yang masuk portofolio.</p>
+          <p>
+            Proporsi dana pada setiap saham yang masuk portofolio berdasarkan hasil optimasi Markowitz.
+          </p>
         </div>
       </div>
 
@@ -154,7 +159,10 @@
       <div class="chart-head">
         <div>
           <h3>Efficient Frontier</h3>
-          <p>Posisi portofolio hasil optimasi dibanding titik risk-return lain.</p>
+          <p>
+            Titik biru menunjukkan beberapa kombinasi portofolio hasil optimasi.
+            Titik hijau menunjukkan portofolio yang dipilih sistem.
+          </p>
         </div>
       </div>
 
@@ -164,10 +172,22 @@
     </div>
   </section>
 
+  <section class="notice-card plain-notice-card">
+  <div>
+    <strong>Catatan Efficient Frontier</strong>
+    <p>
+      Efficient Frontier bukan prediksi pasti masa depan. Titik-titik pada grafik
+      adalah hasil perhitungan matematis berdasarkan return, risiko, dan covariance
+      dari data pada window optimasi. Grafik ini digunakan untuk membantu memahami
+      hubungan antara risiko dan return portofolio.
+    </p>
+  </div>
+</section>
+
   <section class="allocation-card">
     <div class="section-title">Saham yang Masuk Portofolio</div>
     <p class="section-sub">
-      Saham berikut adalah saham yang lolos RBS dan memperoleh bobot dari Markowitz.
+      Saham berikut adalah saham yang lolos Rule-Based System dan memperoleh bobot dari Markowitz.
     </p>
 
     {% set colors = ['#00ffa3','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#ef4444','#84cc16','#f97316','#a78bfa'] %}
@@ -184,7 +204,7 @@
           </div>
 
           <div class="alloc-sub">
-            {{ a.sektor }} · {{ a.rupiah_fmt }}
+            {{ a.sektor }} - {{ a.rupiah_fmt }}
           </div>
 
           <div class="alloc-bar-bg">
@@ -207,46 +227,61 @@
     <div class="section-title">Penjelasan Hasil</div>
 
     <div class="insight-card">
-      <div class="insight-icon">✅</div>
+      <div class="insight-icon">01</div>
       <div>
-        <div class="insight-title">Saham Dipilih Menggunakan Aturan</div>
+        <div class="insight-title">Saham Dipilih Menggunakan Rule-Based System</div>
         <div class="insight-body">
-          Saham tidak dipilih secara manual, tetapi disaring menggunakan Rule-Based System
-          berdasarkan return, volatilitas, dan Sharpe Ratio.
+          Saham tidak dipilih secara manual. Sistem menyaring saham berdasarkan
+          return tahunan, volatilitas tahunan, dan Sharpe Ratio sesuai profil risiko investor.
         </div>
       </div>
     </div>
 
     <div class="insight-card">
-      <div class="insight-icon">📊</div>
+      <div class="insight-icon">02</div>
       <div>
-        <div class="insight-title">Bobot Ditentukan Markowitz</div>
+        <div class="insight-title">Bobot Ditentukan oleh Markowitz</div>
         <div class="insight-body">
-          Setelah saham lolos screening, sistem menghitung bobot optimal agar risiko portofolio
-          dapat ditekan dengan tetap mempertimbangkan expected return.
+          Setelah saham lolos screening, sistem menghitung bobot portofolio
+          menggunakan model Markowitz. Tujuannya adalah membentuk kombinasi saham
+          yang lebih efisien dari sisi risiko dan return.
         </div>
       </div>
     </div>
 
     <div class="insight-card">
-      <div class="insight-icon">🔁</div>
+      <div class="insight-icon">03</div>
       <div>
-        <div class="insight-title">Model Bersifat Dinamis</div>
+        <div class="insight-title">Rebalancing Bulanan</div>
         <div class="insight-body">
-          Model disebut dinamis karena menggunakan rolling window.
-          Artinya perhitungan dapat diperbarui mengikuti data pasar terbaru.
+          Pada proses backtesting, sistem menggunakan rolling window
+          <strong>{{ window_bulan }} bulan</strong> dan menggesernya setiap
+          <strong>{{ step_bulan }} bulan</strong>. Artinya, bobot portofolio
+          dievaluasi ulang secara bulanan, bukan setiap hari.
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-icon">04</div>
+      <div>
+        <div class="insight-title">Bukan Jaminan Keuntungan</div>
+        <div class="insight-body">
+          Expected return, expected risk, Sharpe Ratio, dan hasil backtesting adalah
+          hasil perhitungan berdasarkan data historis. Angka tersebut bukan jaminan
+          keuntungan di masa depan.
         </div>
       </div>
     </div>
   </section>
 
   <div class="btn-row mt-4">
-    <a href="/backtest" class="btn btn-secondary">📊 Lihat Backtest</a>
-    <a href="/reset" class="btn btn-primary">🔄 Mulai Ulang</a>
+    <a href="/backtest" class="btn btn-secondary">Lihat Backtest</a>
+    <a href="/reset" class="btn btn-primary">Mulai Ulang</a>
   </div>
 
   <p class="footer-note">
-    PortoCUAN · Rule-Based System · Dynamic Markowitz · Backtesting Historis
+    PortoCUAN - Rule-Based System - Dynamic Markowitz - Backtesting Historis
   </p>
 
 </main>
@@ -263,7 +298,7 @@ const pieCtx = document.getElementById('pieChart').getContext('2d');
 new Chart(pieCtx, {
   type: 'doughnut',
   data: {
-    labels: alokasi.map(a => `${a.ticker} · ${a.bobot_pct}%`),
+    labels: alokasi.map(a => `${a.ticker} - ${a.bobot_pct}%`),
     datasets: [{
       data: alokasi.map(a => a.bobot_pct),
       backgroundColor: colors.slice(0, alokasi.length),
@@ -338,7 +373,7 @@ new Chart(frCtx, {
         borderColor: 'rgba(255,255,255,.12)',
         borderWidth: 1,
         callbacks: {
-          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% · Risiko ${ctx.parsed.x.toFixed(2)}%`
+          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% - Risiko ${ctx.parsed.x.toFixed(2)}%`
         }
       }
     },
