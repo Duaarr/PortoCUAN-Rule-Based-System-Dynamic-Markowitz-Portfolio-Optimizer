@@ -11,7 +11,7 @@
 
 <nav class="navbar">
   <a href="/" class="nav-brand">
-    <div class="nav-logo">📈</div>
+    <div class="nav-logo">PC</div>
     Porto<span>CUAN</span>
   </a>
 
@@ -40,7 +40,7 @@
   <form action="/input" method="POST" class="form-grid">
 
     <section class="form-card">
-      <label class="form-label">💰 Jumlah Dana Investasi</label>
+      <label class="form-label">Jumlah Dana Investasi</label>
 
       <div class="input-money">
         <span>Rp</span>
@@ -60,7 +60,7 @@
     </section>
 
     <section class="form-card">
-      <label class="form-label">🛡️ Profil Risiko</label>
+      <label class="form-label">Profil Risiko</label>
 
       <div class="risk-grid">
         <label class="risk-option">
@@ -90,25 +90,7 @@
     </section>
 
     <section class="form-card">
-      <label class="form-label">⏱️ Preferensi Jangka Waktu Investor</label>
-
-      <select name="jangka_waktu" class="select-input">
-        <option value="6">6 Bulan</option>
-        <option value="12" selected>12 Bulan</option>
-        <option value="24">24 Bulan</option>
-        <option value="36">36 Bulan</option>
-        <option value="60">60 Bulan</option>
-      </select>
-
-      <p class="form-help">
-        Catatan: jangka waktu ini adalah preferensi investor.
-        Sistem tetap mengambil data historis 5 tahun dan memakai rolling window
-        12 bulan untuk model Markowitz.
-      </p>
-    </section>
-
-    <section class="form-card">
-      <label class="form-label">🏢 Pilih Sektor Saham</label>
+      <label class="form-label">Pilih Sektor Saham</label>
 
       <div class="sector-grid">
         {% for sektor in sektor_list %}
@@ -126,19 +108,20 @@
     </section>
 
     <section class="notice-card">
-      <div class="notice-icon">ℹ️</div>
+      <div class="notice-icon">INFO</div>
       <div>
         <strong>Penjelasan Periode Analisis</strong>
         <p>
-          Data saham diambil selama 5 tahun. Setelah itu, model Markowitz memakai
-          rolling window 12 bulan terakhir untuk menghasilkan rekomendasi portofolio.
+          Data saham diambil selama 5 tahun sebagai data historis utama.
+          Untuk rekomendasi portofolio terbaru, model Markowitz memakai
+          rolling window 12 bulan terakhir.
         </p>
       </div>
     </section>
 
     <div class="btn-row">
-      <a href="/" class="btn btn-secondary">← Kembali</a>
-      <button type="submit" class="btn btn-primary">Lanjut Screening →</button>
+      <a href="/" class="btn btn-secondary">Kembali</a>
+      <button type="submit" class="btn btn-primary">Lanjut Screening</button>
     </div>
 
   </form>
