@@ -12,14 +12,14 @@
 
 <nav class="navbar">
   <a href="/" class="nav-brand">
-    <div class="nav-logo">📈</div>
+    <div class="nav-logo">PC</div>
     Porto<span>CUAN</span>
   </a>
 
   <div class="stepper">
-    <div class="step done">✓</div>
+    <div class="step done">1</div>
     <div class="step-line done"></div>
-    <div class="step done">✓</div>
+    <div class="step done">2</div>
     <div class="step-line done"></div>
     <div class="step active">3</div>
     <div class="step-line"></div>
@@ -30,7 +30,7 @@
 <main class="wrap">
 
   <section class="hero-panel">
-    <div class="eyebrow">Langkah 3 dari 4 · Dynamic Markowitz</div>
+    <div class="eyebrow">Langkah 3 dari 4 - Dynamic Markowitz</div>
     <h1>Hasil Optimasi Portofolio</h1>
     <p>
       Saham yang lolos Rule-Based System dihitung menggunakan model Markowitz
@@ -40,28 +40,28 @@
 
   <section class="info-grid four">
     <div class="info-card">
-      <div class="info-icon">📚</div>
+      <div class="info-icon">01</div>
       <div class="info-label">Data Historis</div>
       <div class="info-value">{{ tahun_data }} Tahun</div>
-      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+      <div class="info-sub">{{ data_mulai }} sampai {{ data_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🧮</div>
+      <div class="info-icon">02</div>
       <div class="info-label">Window Optimasi</div>
       <div class="info-value">{{ window_bulan }} Bulan</div>
-      <div class="info-sub">{{ periode_mulai }} → {{ periode_selesai }}</div>
+      <div class="info-sub">{{ periode_mulai }} sampai {{ periode_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">✅</div>
+      <div class="info-icon">03</div>
       <div class="info-label">Saham Lolos RBS</div>
       <div class="info-value green">{{ jumlah_lolos }}</div>
       <div class="info-sub">digunakan dalam optimasi</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">💰</div>
+      <div class="info-icon">04</div>
       <div class="info-label">Dana Investasi</div>
       <div class="info-value">{{ hasil.dana_fmt }}</div>
       <div class="info-sub">total modal dialokasikan</div>
@@ -95,7 +95,7 @@
   </section>
 
   <section class="notice-card">
-    <div class="notice-icon">ℹ️</div>
+    <div class="notice-icon">INFO</div>
     <div>
       <strong>Catatan Perhitungan</strong>
       <p>
@@ -154,7 +154,7 @@
           </div>
 
           <div class="alloc-sub">
-            {{ a.sektor }} · {{ a.rupiah_fmt }}
+            {{ a.sektor }} - {{ a.rupiah_fmt }}
           </div>
 
           <div class="alloc-bar-bg">
@@ -174,8 +174,8 @@
   </section>
 
   <div class="btn-row mt-4">
-    <a href="/screening" class="btn btn-secondary">← Kembali ke Screening</a>
-    <a href="/backtest" class="btn btn-primary">Lanjut Backtesting →</a>
+    <a href="/screening" class="btn btn-secondary">Kembali ke Screening</a>
+    <a href="/backtest" class="btn btn-primary">Lanjut Backtesting</a>
   </div>
 
 </main>
@@ -192,7 +192,7 @@ const pieCtx = document.getElementById('pieChart').getContext('2d');
 new Chart(pieCtx, {
   type: 'doughnut',
   data: {
-    labels: alokasi.map(a => `${a.ticker} · ${a.bobot_pct}%`),
+    labels: alokasi.map(a => `${a.ticker} - ${a.bobot_pct}%`),
     datasets: [{
       data: alokasi.map(a => a.bobot_pct),
       backgroundColor: colors.slice(0, alokasi.length),
@@ -267,7 +267,7 @@ new Chart(frCtx, {
         borderColor: 'rgba(255,255,255,.12)',
         borderWidth: 1,
         callbacks: {
-          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% · Risiko ${ctx.parsed.x.toFixed(2)}%`
+          label: ctx => `Return ${ctx.parsed.y.toFixed(2)}% - Risiko ${ctx.parsed.x.toFixed(2)}%`
         }
       }
     },
