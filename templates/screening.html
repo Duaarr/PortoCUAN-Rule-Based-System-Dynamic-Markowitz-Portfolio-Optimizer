@@ -11,12 +11,12 @@
 
 <nav class="navbar">
   <a href="/" class="nav-brand">
-    <div class="nav-logo">📈</div>
+    <div class="nav-logo">PC</div>
     Porto<span>CUAN</span>
   </a>
 
   <div class="stepper">
-    <div class="step done">✓</div>
+    <div class="step done">1</div>
     <div class="step-line done"></div>
     <div class="step active">2</div>
     <div class="step-line"></div>
@@ -29,7 +29,7 @@
 <main class="wrap">
 
   <section class="hero-panel">
-    <div class="eyebrow">Langkah 2 dari 4 · Rule-Based System</div>
+    <div class="eyebrow">Langkah 2 dari 4 - Rule-Based System</div>
     <h1>Hasil Screening Saham</h1>
     <p>
       Sistem menyaring saham berdasarkan return tahunan, volatilitas tahunan,
@@ -39,31 +39,31 @@
 
   <section class="info-grid four">
     <div class="info-card">
-      <div class="info-icon">📚</div>
+      <div class="info-icon">01</div>
       <div class="info-label">Data Historis</div>
       <div class="info-value">{{ tahun_data }} Tahun</div>
-      <div class="info-sub">{{ data_mulai }} → {{ data_selesai }}</div>
+      <div class="info-sub">{{ data_mulai }} sampai {{ data_selesai }}</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">🧾</div>
+      <div class="info-icon">02</div>
       <div class="info-label">Saham Dianalisis</div>
       <div class="info-value">{{ hasil_rbs.jumlah_dianalisis }}</div>
       <div class="info-sub">saham memiliki data valid</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">✅</div>
+      <div class="info-icon">03</div>
       <div class="info-label">Saham Lolos</div>
       <div class="info-value green">{{ hasil_rbs.jumlah_lolos }}</div>
       <div class="info-sub">masuk ke tahap Markowitz</div>
     </div>
 
     <div class="info-card">
-      <div class="info-icon">❌</div>
+      <div class="info-icon">04</div>
       <div class="info-label">Tidak Lolos</div>
       <div class="info-value red">{{ hasil_rbs.jumlah_tidak_lolos }}</div>
-      <div class="info-sub">gagal memenuhi aturan RBS</div>
+      <div class="info-sub">tidak memenuhi aturan RBS</div>
     </div>
   </section>
 
@@ -135,7 +135,7 @@
     <div class="table-head">
       <div>
         <h2>Saham yang Tidak Lolos RBS</h2>
-        <p>Bagian ini penting untuk menjelaskan bahwa sistem benar-benar melakukan seleksi.</p>
+        <p>Bagian ini menunjukkan bahwa sistem benar-benar melakukan proses seleksi.</p>
       </div>
     </div>
 
@@ -175,8 +175,8 @@
   </section>
 
   <div class="btn-row mt-4">
-    <a href="/input" class="btn btn-secondary">← Ubah Input</a>
-    <a href="/optimasi" class="btn btn-primary">Lanjut Optimasi →</a>
+    <a href="/input" class="btn btn-secondary">Ubah Input</a>
+    <a href="/optimasi" class="btn btn-primary">Lanjut Optimasi</a>
   </div>
 
 </main>
